@@ -8,10 +8,7 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
-
- 
   },
-  
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.4",
     "@vitejs/plugin-react": "^4.2.1",
@@ -25,8 +22,6 @@
     "web-localstorage-plus": "^0.0.19"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.3.0",
-    "@commitlint/config-conventional": "^19.2.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react-swc": "^3.5.0",
@@ -36,7 +31,6 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
-    "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "vite": "^5.2.0"
   }
