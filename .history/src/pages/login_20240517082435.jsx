@@ -4,7 +4,7 @@ function Login() {
 
   return (
    <>
-   <BaseWrapper>
+   <BaseWrapper className="flex-center-center ">
    
    </BaseWrapper>
 

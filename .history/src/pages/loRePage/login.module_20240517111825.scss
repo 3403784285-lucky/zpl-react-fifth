@@ -1,0 +1,14 @@
+.back{
+    background:url('/img/login.png');
+    background-size:cover;
+}
+.loginCard{
+    box-shadow: 3px 2px 12px rgb(94, 129, 244, 0.51);
+    border-style: none;
+    width:500px;
+    height: 550px;
+    border-radius:10px;
+    gap: 20px;
+    backdrop-filter: blur(5px);
+    background-color: rgba(0,191,255, 0.95);
+}
