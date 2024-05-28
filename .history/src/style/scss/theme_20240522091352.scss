@@ -1,0 +1,14 @@
+
+.hover-button {
+    position: absolute;
+    left: 175px;
+    bottom: 356px;
+    display: none;
+  
+
+  &:hover {
+    .hover-button {
+      display: block;
+    }
+  }
+}

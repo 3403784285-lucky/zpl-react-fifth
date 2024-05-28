@@ -1,0 +1,25 @@
+@import './custom.scss';
+@import './color.scss';
+@import './flex.scss';
+@import './theme.scss';
+@import './margin-padding.scss';
+@import './other.scss';
+
+* {
+  // 清除默认的外边距和内边距
+  margin: 0;
+  padding: 0;
+  // 盒子模型：外边距（margin）+ border（边框） + 内边距（padding）+ content（内容）
+  box-sizing: border-box; // 设置之后padding和border的值就不会影响盒子大小(元素的宽高)，相当于把padding和border的值都算在content里
+}
+
+#root,
+html,
+body {
+  height: 100%; // 页面满屏
+  // overflow: hidden;
+}
+
+.shadow-first{
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+}

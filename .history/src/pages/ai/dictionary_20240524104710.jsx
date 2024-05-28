@@ -1,0 +1,13 @@
+import { Input,Button } from 'antd';
+function Dictionary(){
+  return <div className="p-30">
+  <h4 className='m-b-20'>超级网点</h4>
+  <div className="input-frame">
+    <Input placeholder="Basic usage" style={{width:'300px'}}/>
+    <Button className='bg-color-second text-color-white'>推荐</Button>
+  </div>
+  
+
+</div>
+}
+export default Dictionary;

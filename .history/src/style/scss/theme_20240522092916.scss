@@ -1,0 +1,41 @@
+// /* styles.scss */
+// .container {
+   
+  
+//     .hover-button {
+//       display: none;
+     
+//     }
+  
+//     &:hover {
+//       .hover-button {
+//         display: block;
+//       }
+//     }
+//   }
+  
+/* styles.scss */
+.sider-container {
+    position: relative;
+    height: 91.5vh;
+    overflow: auto;
+  
+    .hover-button {
+      position: absolute;
+      bottom: 20px; // 调整浮动按钮的垂直位置
+      transition: left 0.2s; // 添加动画效果
+    }
+  
+    &.collapsed {
+      .hover-button {
+        left: 80px; // 折叠时按钮的位置
+      }
+    }
+  
+    &.expanded {
+      .hover-button {
+        left: 175px; // 展开时按钮的位置
+      }
+    }
+  }
+  
