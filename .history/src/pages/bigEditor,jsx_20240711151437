@@ -1,0 +1,14 @@
+
+import Tiptap from "../components/utils/editor";
+
+function BigEditor() {
+    
+    
+    return <>
+    <Tiptap />
+    
+    </>
+
+}
+
+export default BigEditor;

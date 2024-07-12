@@ -1,0 +1,258 @@
+.isActive{
+  background-color: rgb(199, 199, 199);
+}
+.codeBlock{
+  ul, 
+  ol {
+    padding: 0 1rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+    
+    li p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+  }
+
+  /* Heading styles */
+  h1, 
+  h2, 
+  h3, 
+  h4, 
+  h5, 
+  h6 {
+    line-height: 1.1;
+    margin-top: 2.5rem;
+    text-wrap: pretty;
+  }
+
+  h1, 
+  h2 {
+    margin-top: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 { 
+    font-size: 1.4rem; 
+  }
+
+  h2 { 
+    font-size: 1.2rem; 
+  }
+
+  h3 { 
+    font-size: 1.1rem; 
+  }
+
+  h4, 
+  h5, 
+  h6 { 
+    font-size: 1rem; 
+  }
+
+  /* Code and preformatted text styles */
+  code {
+    background-color: lightpink;
+    border-radius: 0.4rem;
+    color: black;
+    font-size: 0.85rem;
+    padding: 0.25em 0.3em;
+  }
+
+  mark {
+    background-color: #FAF594;
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    padding: 0.1rem 0.3rem;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--gray-3);
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-2);
+    margin: 2rem 0;
+  }
+}
+
+.col-group {
+  display: flex;
+  flex-direction: row;
+
+  @media (max-width: 540px) {
+    flex-direction: column-reverse;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.sidebar {
+  border-left: 1px solid var(--gray-3);
+  flex-grow: 0;
+  flex-shrink: 0;
+  padding: 1rem;
+  width: 15rem;
+  position: sticky;
+  height: 100vh;
+  top: 0;
+
+  @media (min-width: 800px) {
+    width: 20rem;
+  }
+
+  @media (max-width: 540px) {
+    border-bottom: 1px solid var(--gray-3);
+    border-left: unset;
+    width: 100%;
+    height: auto;
+    position: unset;
+    padding: 1.5rem;
+  }
+}
+
+.sidebar-options {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.table-of-contents {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+  gap: 0.25rem;
+  overflow: auto;
+  text-decoration: none;
+
+  > div {
+    border-radius: 0.25rem;
+    padding-left: calc(0.875rem * (var(--level) - 1));
+    transition: all 0.2s cubic-bezier(0.65,0.05,0.36,1);
+
+    &:hover {
+      background-color: var(--gray-2);
+    }
+  }
+  
+  .empty-state {
+    color: var(--gray-5);
+    user-select: none;
+  }
+
+  .is-active a {
+    color: var(--purple);
+  }
+
+  .is-scrolled-over a {
+    color: var(--gray-5);
+  }
+
+  a {
+    color: var(--black);
+    display: flex;
+    gap: 0.25rem;
+    text-decoration: none;
+
+    &::before {
+      content:attr(data-item-index)".";
+    }
+  }
+  pre {
+    background: black;
+    border-radius: 0.5rem;
+    color: white;
+    font-family: 'JetBrainsMono', monospace;
+    margin: 1.5rem 0;
+    padding: 0.75rem 1rem;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: 0.8rem;
+      padding: 0;
+    }
+  }
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+
+    td,
+    th {
+      border: 1px solid rgb(67, 67, 67);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 6px 8px;
+      position: relative;
+      vertical-align: top;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      background-color: rgba(162, 161, 161, 0.158);
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .selectedCell:after {
+      background: gray;
+      content: "";
+      left: 0; right: 0; top: 0; bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: purple;
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+  }
+
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  &.resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
+  ul,
+  ol {
+    padding: 0 1rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+
+    li p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+  }
+  blockquote {
+    border-left: 3px solid rgb(150, 147, 147);
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+    
+  }
+}
