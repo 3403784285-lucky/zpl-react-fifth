@@ -5,7 +5,6 @@ import fileFun from '../../api/user/file';
 import { useStorage } from "web-localstorage-plus";
 import { useState } from 'react';
 import shareCFun from '../../api/user/share';
-import { encrypt } from '../../utils/code';
 const IconFont = createFromIconfontCN({
     scriptUrl: [
         '//at.alicdn.com/t/c/font_4248113_b9ss08hx8l8.js'
