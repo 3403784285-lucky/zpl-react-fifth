@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Avatar, Upload, Button, Tooltip, Tag, Input, message, Modal, Result } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { createFromIconfontCN } from '@ant-design/icons';
@@ -25,9 +25,6 @@ const PersonalCenter = () => {
         setNickname(e.target.value);
        
     };
-    useEffect(()=>{
-        
-    })
     const handleNicknameBlur = async() => {
         setIsEditingNickname(false);
         const res = await userFun.update(nickname, avatar,storage.getItem("openid"))

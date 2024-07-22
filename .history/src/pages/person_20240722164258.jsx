@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Avatar, Upload, Button, Tooltip, Tag, Input, message, Modal, Result } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { createFromIconfontCN } from '@ant-design/icons';
@@ -21,22 +21,18 @@ const PersonalCenter = () => {
     const [isSignedIn, setIsSignedIn] = useState(false);
     const dispatch = useDispatch()
     const money = storage.getItem("user").money
-    const handleNicknameChange = (e) => {
+    const handleNicknameChange =async (e) => {
         setNickname(e.target.value);
-       
-    };
-    useEffect(()=>{
-        
-    })
-    const handleNicknameBlur = async() => {
-        setIsEditingNickname(false);
-        const res = await userFun.update(nickname, avatar,storage.getItem("openid"))
+        const res = await userFun.update(e.target.value, avatar)
         if (res.code == 200) {
-           message.success("信息修改成功")
+            console.log("信息修改成功")
             const res1 =await userFun.getUser(storage.getItem("openid"))
             storage.setItem("user", res1.data)
         }
-
+    };
+    const handleNicknameBlur = () => {
+        setIsEditingNickname(false);
+        message.success('昵称已保存');
     };
     const getBase64 = (file) =>
         new Promise((resolve, reject) => {
