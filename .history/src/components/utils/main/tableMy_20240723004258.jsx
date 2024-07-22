@@ -190,10 +190,7 @@ function TableMy({ getFun, dataContent, deleteFun, deleteBatchFun, uniqueText })
         setEditingFileName({ id: null, name: '' });
     };
     const toggleFavorite = async(record) => {
-       const res=await fileFun.favoriteDocument({userId:storage.getItem("openid"),documentId:record.id})
-       if(res.code==200){
-        message.success(res.msg)
-       }
+       const res=await fileFun.favoriteDocument({storage.getItem("openid"),record.id})
         const newDataDeal = dataDeal.map(item => {
             if (item.id === record.id) {
                 return {

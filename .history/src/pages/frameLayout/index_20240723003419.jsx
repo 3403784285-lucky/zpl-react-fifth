@@ -114,9 +114,9 @@ const Index = () => {
           <IconFont type="icon-icon-yichang " className='font-size-lg m-x-20' />
           <Popover placement="bottom" 
           content={<div >
-            <div className='b-rd-6 flex hover-effect p-6' onClick={()=>navigate('/person')}> <HomeOutlined className='m-x-6'/><div >个人中心</div></div>
+            <div className='b-rd-6 flex hover-effect p-6'> <HomeOutlined className='m-x-6'/><div >个人中心</div></div>
 
-            <div className='b-rd-6 flex hover-effect p-6' onClick={()=>navigate('/my-order')}><CreditCardOutlined  className='m-x-6'/><div>我的订单</div></div>
+            <div className='b-rd-6 flex hover-effect p-6'><CreditCardOutlined  className='m-x-6'/><div>我的订单</div></div>
            
           </div>}>
             <img src={img ?? storage.getItem("user").avatar} onClick={() => { navigate('/person') }} style={{ width: '35px', height: '35px', borderRadius: '50%' }} />
