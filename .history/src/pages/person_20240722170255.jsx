@@ -80,6 +80,7 @@ const PersonalCenter = () => {
 
                 }
 
+
             }
 
             ;
@@ -87,15 +88,15 @@ const PersonalCenter = () => {
     };
 
     const handleSignIn = async () => {
-        if (!isSignedIn) {
-            const res = await userFun.sign()
-            if (res.code == 200) {
-                setIsSignedIn(true);
-                setSignInVisible(true);
-            }
-
+        if(!isSignedIn){
+             const res = await userFun.sign()
+        if(res.code==200){
+             setIsSignedIn(true);
+             setSignInVisible(true);
         }
-
+       
+        }
+       
 
     };
 

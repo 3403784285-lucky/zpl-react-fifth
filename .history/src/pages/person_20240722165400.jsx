@@ -23,30 +23,22 @@ const PersonalCenter = () => {
     const money = storage.getItem("user").money
     const handleNicknameChange = (e) => {
         setNickname(e.target.value);
-
+       
     };
-    useEffect(() => {
-        const fetchData = async () => {
-            const res = await userFun.checkSign();
-            if (res.code == 200) {
-                if (res.msg == "未签到") {
-                    setIsSignedIn(false)
-                    setSignInVisible(false)
-                } else {
-                    setIsSignedIn(true)
-                }
-            }
+    useEffect(()=>{
+    const fetchData=async()=>{
+        
 
-        }
-        fetchData()
+    }
+    fetchData()
 
     })
-    const handleNicknameBlur = async () => {
+    const handleNicknameBlur = async() => {
         setIsEditingNickname(false);
-        const res = await userFun.update(nickname, avatar, storage.getItem("openid"))
+        const res = await userFun.update(nickname, avatar,storage.getItem("openid"))
         if (res.code == 200) {
-            message.success("信息修改成功")
-            const res1 = await userFun.getUser(storage.getItem("openid"))
+           message.success("信息修改成功")
+            const res1 =await userFun.getUser(storage.getItem("openid"))
             storage.setItem("user", res1.data)
         }
 
@@ -75,10 +67,11 @@ const PersonalCenter = () => {
                     setAvatar(uploadedUrl);
                     dispatch(setItemsState(uploadedUrl))
                     message.success("信息修改成功,请稍等...")
-                    const res1 = await userFun.getUser(storage.getItem("openid"))
+                    const res1 =await userFun.getUser(storage.getItem("openid"))
                     storage.setItem("user", res1.data)
 
                 }
+
 
             }
 
@@ -86,17 +79,9 @@ const PersonalCenter = () => {
         }
     };
 
-    const handleSignIn = async () => {
-        if (!isSignedIn) {
-            const res = await userFun.sign()
-            if (res.code == 200) {
-                setIsSignedIn(true);
-                setSignInVisible(true);
-            }
-
-        }
-
-
+    const handleSignIn = () => {
+        setIsSignedIn(true);
+        setSignInVisible(true);
     };
 
     const handleModalOk = () => {
