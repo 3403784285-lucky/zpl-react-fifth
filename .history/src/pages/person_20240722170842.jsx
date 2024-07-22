@@ -6,7 +6,6 @@ import { useStorage } from 'web-localstorage-plus';
 import fileFun from '../api/user/file';
 import userFun from '../api/user/user';
 import { setItemsState } from '../store';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 const IconFont = createFromIconfontCN({
     scriptUrl: [
@@ -21,8 +20,7 @@ const PersonalCenter = () => {
     const [signInVisible, setSignInVisible] = useState(false);
     const [isSignedIn, setIsSignedIn] = useState(false);
     const dispatch = useDispatch()
-    const navigate=useNavigate()
-    const [money,setMoney] = useState(storage.getItem("user").money)
+    const money = storage.getItem("user").money
     const handleNicknameChange = (e) => {
         setNickname(e.target.value);
 
@@ -84,18 +82,12 @@ const PersonalCenter = () => {
             };
         }
     };
-    const toCenter=()=>{
-        navigate('/member-center')
-        
-    }
     const handleSignIn = async () => {
         if (!isSignedIn) {
             const res = await userFun.sign()
             if (res.code == 200) {
                 setIsSignedIn(true);
                 setSignInVisible(true);
-                storage.setItem("money",money+10,"user")
-                setMoney(money+10)
             }
         }
     };
@@ -144,7 +136,7 @@ const PersonalCenter = () => {
 
 
                 <div className="two flex" style={{ justifyContent: 'space-between' }}>
-                    <div className="number-one  m-x-20" onClick="toCenter">
+                    <div className="number-one  m-x-20">
                         <div className="number flex-r-center-center">{money}</div>
                         <div className="desc">积分</div>
 

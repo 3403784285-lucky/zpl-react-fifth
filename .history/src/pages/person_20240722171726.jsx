@@ -94,7 +94,7 @@ const PersonalCenter = () => {
             if (res.code == 200) {
                 setIsSignedIn(true);
                 setSignInVisible(true);
-                storage.setItem("money",money+10,"user")
+                storage.setItem("user","money",money+10)
                 setMoney(money+10)
             }
         }

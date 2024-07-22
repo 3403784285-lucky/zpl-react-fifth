@@ -22,7 +22,7 @@ const PersonalCenter = () => {
     const [isSignedIn, setIsSignedIn] = useState(false);
     const dispatch = useDispatch()
     const navigate=useNavigate()
-    const [money,setMoney] = useState(storage.getItem("user").money)
+    const money = storage.getItem("user").money
     const handleNicknameChange = (e) => {
         setNickname(e.target.value);
 
@@ -85,7 +85,6 @@ const PersonalCenter = () => {
         }
     };
     const toCenter=()=>{
-        navigate('/member-center')
         
     }
     const handleSignIn = async () => {
@@ -94,8 +93,6 @@ const PersonalCenter = () => {
             if (res.code == 200) {
                 setIsSignedIn(true);
                 setSignInVisible(true);
-                storage.setItem("money",money+10,"user")
-                setMoney(money+10)
             }
         }
     };
