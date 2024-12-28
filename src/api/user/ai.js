@@ -1,8 +1,11 @@
-
 import api from "../request";
 
 let aiFun = {
     
+};
+
+aiFun.getHot= () => {
+    return api.post("/ai/hot");
 };
 
 aiFun.textContinuation= (data) => {
@@ -45,18 +48,27 @@ aiFun.paperOutlineGeneration = (data) => {
 aiFun.paperContentGeneration = (data) => {
     return api.upload(`/ai/paperContentGeneration`,data);
 };
+
+aiFun.visual = (data) => {
+    return api.upload(`/ai/visualize`,data);
+};
+
 aiFun.paperReview = (PaperReviewRequestDTO) => {
     return api.post(`/ai/paperReview`,PaperReviewRequestDTO);
 };
 
-aiFun.aiDocumentAssistant = (data) => {
-    return api.upload(`/ai/aiDocumentAssistant`,data);
+aiFun.deduct = (name) => {
+    return api.postParam(`/ai/deduct`,null,{apiName:name});
 };
 
+aiFun.aiDocumentAssistant = (data) => {
+    return api.post(`/ai/aiDocumentAssistant`,data);
+};
 
 aiFun.baidu = (data) => {
     return api.upload(`/ai/baidu`,data);
 };
+
 aiFun.translate = (data) => {
     return api.upload(`/ai/translate`,data);
 };
@@ -64,15 +76,23 @@ aiFun.translate = (data) => {
 aiFun.ocr = (data) => {
     return api.upload(`/ai/ocr`,data);
 };
+
 aiFun.asr = (data) => {
     return api.upload(`/ai/asr`,data);
 };
+
 aiFun.ocrTable = (data) => {
     return api.upload(`/ai/ocrTable`,data);
 };
+
 aiFun.fixFormat = (data) => {
     return api.post(`/ai/fixFormat`,data);
 };
 
+aiFun.streamChat = (data) => {
+    // 创建 EventSource 实例连接 SSE 接口
+    const eventSource = api.post(`/ai/sse`,data)
+    return eventSource;
+};
 
 export default aiFun;

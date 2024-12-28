@@ -1,4 +1,6 @@
-import { createHashRouter } from "react-router-dom";
+import {
+  createHashRouter
+} from "react-router-dom";
 import Login from "../pages/loRePage/login";
 import Register from "../pages/loRePage/register";
 import Index from "../pages/frameLayout/index";
@@ -15,7 +17,7 @@ import Bin from "../pages/main/file/bin.jsx";
 import Center from "../pages/main/center/center";
 import Library from "../pages/main/file/library.jsx";
 import Edit from "../pages/main/file/edit.jsx";
-import Key  from "../pages/ai/key";
+import Key from "../pages/ai/key";
 import FileLay from "../pages/main/file/fileLay.jsx";
 import ItsCenter from "../pages/template/itsCenter.jsx";
 import MyIts from "../pages/template/myIts.jsx";
@@ -29,173 +31,216 @@ import SearchFile from "../pages/main/file/searchFile.jsx";
 import OrderPay from "../pages/main/center/orderPay.jsx";
 import DocumentSearchPage from "../pages/documentSearchPage.jsx";
 import UploadMaterialForm from "../components/utils/main/cards.jsx";
-const router = createHashRouter([
+import UserManagement from "../pages/admin/userManage.jsx";
+import InterfaceManagement from "../pages/admin/interfaceManage.jsx";
+import OrderManagement from "../pages/admin/orderManage.jsx";
+import PriceManagement from "../pages/admin/priceManage.jsx";
+import Statistics from "../pages/admin/statistics.jsx";
+import VectorManagement from '../pages/admin/vectorManage.jsx'
+import AppContent from '../AppContent.jsx'
+const router = createHashRouter([{
 
-  {
-    path: "/login",
-    Component: Login,
-  },
-
-  {
-    path: "/register",
-    Component: Register,
-  },
-  {
-    path: "big-editor",
-    Component: BigEditor,
-    children:[
-      {
-        path: "information-extraction",
-        Component: Extraction,
-
-      },
-    ]
-   
-  },
-
-  {
-    path: "/",
-    Component: Index,
+    Component: AppContent,
     children: [
+
       {
-        
-        path: "homepage-recommendation",
-        Component: Recommendation,
+        path: "/login",
+        Component: Login,
       },
-     
 
       {
+        path: "/register",
+        Component: Register,
+      },
+      {
+        path: "big-editor",
+        Component: BigEditor,
+        children: [{
+          path: "information-extraction",
+          Component: Extraction,
 
-       
-        Component: Files,
-        children: [
+        }, ]
+
+      },
+
+      {
+        path: "/",
+        Component: Index,
+        children: [{
+
+            path: "homepage-recommendation",
+            Component: Recommendation,
+          },
           {
-           
-            index:true,
-            Component: FileLay,
+
+            path: "statistics",
+            Component: Statistics,
+          },
+          {
+
+            path: "user-manage",
+            Component: UserManagement,
+          },
+          {
+
+            path: "api-manage",
+            Component: InterfaceManagement,
+          },
+          {
+
+            path: "vector-manage",
+            Component: VectorManagement,
           },
 
           {
-            path:"edit",
-            Component: Edit,
-            children: [
-              {
-                
-                path:"",
-                Component: Correction,
-              },
-              {
-                path: "text-completion",
-                Component: Completion,
 
-              },
-              {
-                path: "chapter-generation",
-                Component: Generation,
+            path: "order-manage",
+            Component: OrderManagement,
+          },
+          {
 
-              },
-              {
-                path: "text-polishing",
-                Component: Polishing,
+            path: "price-manage",
+            Component: PriceManagement,
+          },
 
-              },
-              {
-                path: "information-extraction",
-                Component: Extraction,
 
-              },
-              {
-                path: "super-dictionary",
-                Component: Dictionary,
+          {
 
-              },
-              {
-                path: "shortcut-key",
-                Component: Key,
 
-              }
-              
+            Component: Files,
+            children: [{
+
+                path: "",
+                Component: FileLay,
+              },
+
+
+              {
+                path: "edit",
+                Component: Edit,
+                children: [{
+
+                    path: "",
+                    Component: Correction,
+                  },
+                  {
+                    path: "text-completion",
+                    Component: Completion,
+
+                  },
+                  {
+                    path: "chapter-generation",
+                    Component: Generation,
+
+                  },
+                  {
+                    path: "text-polishing",
+                    Component: Polishing,
+
+                  },
+                  {
+                    path: "information-extraction",
+                    Component: Extraction,
+
+                  },
+                  {
+                    path: "super-dictionary",
+                    Component: Dictionary,
+
+                  },
+                  {
+                    path: "shortcut-key",
+                    Component: Key,
+
+                  }
+
+                ]
+              },
+
+
             ]
           },
-       
+          {
+            path: "my-favorites",
+            Component: Favorites,
+          },
+          {
+            path: "my-order",
+            Component: OrderTable,
+          },
+          {
+            path: "my-wallet",
+            Component: Wallet,
+          },
+          {
+            path: "order-pay",
+            Component: OrderPay,
+          },
+          {
+            path: "information-notice",
+            Component: InformationNotice,
+          },
+          {
+            path: "point-pay",
+            Component: Wallet,
+          },
+          {
+            path: "search-document",
+            Component: DocumentSearchPage,
+          },
+          {
+            path: "my-example",
+            Component: UploadMaterialForm,
+          },
+          {
+            path: "person",
+            Component: Person,
+          },
+          {
+            path: "my-folders",
+            Component: Folders,
+            children: [{
+
+                path: "",
+                Component: ItsCenter,
+              },
+              {
+                path: "my-template",
+                Component: MyIts,
+
+              },
+
+            ]
+          },
+          {
+            path: "my-file",
+            Component: File,
+
+          },
+
+          {
+            path: "search-file",
+            Component: SearchFile,
+
+          },
+          {
+            path: "recycle-bin",
+            Component: Bin,
+          },
+          {
+            path: "library",
+            Component: Library,
+          },
+          {
+            path: "member-center",
+            Component: Center,
+          },
 
         ]
       },
-      {
-        path: "my-favorites",
-        Component: Favorites,
-      },
-      {
-        path: "my-order",
-        Component: OrderTable,
-      },
-      {
-        path: "my-wallet",
-        Component: Wallet,
-      },
-      {
-        path: "order-pay",
-        Component: OrderPay,
-      },
-      {
-        path: "point-pay",
-        Component: Wallet,
-      },
-      {
-        path: "search-document",
-        Component: DocumentSearchPage,
-      },
-      {
-        path: "my-example",
-        Component:UploadMaterialForm ,
-      },
-      {
-        path: "person",
-        Component:Person,
-      },
-      {
-        path: "my-folders",
-        Component: Folders,
-        children: [
-          {
-            
-            path:"",
-            Component: ItsCenter,
-          },
-          {
-            path: "my-template",
-            Component: MyIts,
-
-          },
-          
-        ]
-      },
-      {
-        path: "my-file",
-        Component: File,
-       
-      },
-   
-      {
-        path: "search-file",
-        Component: SearchFile,
-       
-      },
-      {
-        path: "recycle-bin",
-        Component: Bin,
-      },
-      {
-        path: "library",
-        Component: Library,
-      },
-      {
-        path: "member-center",
-        Component: Center,
-      },
-
     ]
   },
+
 ]);
 
 export default router;
