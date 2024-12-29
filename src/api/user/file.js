@@ -1,9 +1,24 @@
 
 import api from "../request";
+import orderFun from "./order.js";
 
 let fileFun = {
 
 };
+
+
+
+fileFun.getVsFiles = () => {
+    return api.get("/vis/list");
+};
+orderFun.deleteVs= (Id) => {
+    return api.post(`/vis/delete/${Id}`);
+};
+
+fileFun.addVs = (formData) => {
+    return api.post("/vis/add", formData);
+};
+
 fileFun.getFiles = () => {
     return api.get("/user/login");
 };
@@ -50,6 +65,7 @@ fileFun.getArticles = () => {
 fileFun.favoriteDocument = (FavoriteDocumentDTO) => {
     return api.post("/documents/favoriteDocument", FavoriteDocumentDTO);
 };
+
 fileFun.toggleFavoriteTemplate = (FavoriteTemplateDTO) => {
     return api.post("/documents/toggleFavoriteTemplate", FavoriteTemplateDTO);
 };
@@ -87,7 +103,7 @@ fileFun.getDocumentVersion = (documentId) => {
 };
 
 fileFun.rollbackDocumentVersion = (documentId, versionId) => {
-    return api.post(`/rollbackDocumentVersion/${documentId}/${versionId}`);
+    return api.post(`/document/rollbackDocumentVersion/${documentId}/${versionId}`);
 };
 
 fileFun.setUserAbility = (DocumentPermissionsDTO) => {

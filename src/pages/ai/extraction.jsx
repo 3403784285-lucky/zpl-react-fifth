@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlusOutlined, AppstoreOutlined, BorderOuterOutlined, AudioOutlined, LoadingOutlined, FileAddOutlined } from '@ant-design/icons';
 import { Menu, Upload, Card, message, Button, Modal } from 'antd';
 import aiFun from '../../api/user/ai';
@@ -33,87 +33,85 @@ const Extraction = ({editor}) => {
 
     const handleMenuClick = (e) => {
         setCurrent(e.key);
-        setFileList([]);
+        setFileList([]);  // 清空文件列表
         setRecognitionResult({ message: '', text: '', ocrImage: '' });
         setPreviewImage('');
         setAnimatedText('');
     };
 
-    const handleChange = ({ file }) => {
+    const handleChange = ({ file, fileList }) => {
         if (file.status === 'removed') {
             setFileList([]);
             setPreviewImage('');
             setRecognitionResult({ message: '', text: '', ocrImage: '' });
+        } else {
+            setFileList(fileList); // 更新文件列表状态
         }
     };
 
     const beforeUpload = async (file) => {
+        // 清空文件列表
+        setFileList([]);
+
         const formData = new FormData();
         formData.append('file', file);
 
+        setAnimatedText('');
         setLoading(true);
 
-        try {
-            let response;
-            switch (current) {
-                case 'ocr':
-                    response = await aiFun.ocr(formData);
-                    break;
-                case 'asr':
-                    if (file.type !== 'audio/wav') {
-                        message.error('语音识别只支持.wav格式的文件');
-                        setLoading(false);
-                        return false;
-                    }
-                    response = await aiFun.asr(formData);
-                    break;
-                case 'table':
-                    response = await aiFun.ocrTable(formData);
-                    break;
-                default:
-                    break;
-            }
+        let response;
+        switch (current) {
+            case 'ocr':
+                response = await aiFun.ocr(formData);
+                break;
+            case 'asr':
+                if (file.type !== 'audio/wav') {
+                    message.error('语音识别只支持.wav格式的文件');
+                    setLoading(false);
+                    return false;
+                }
+                response = await aiFun.asr(formData);
+                break;
+            case 'table':
+                response = await aiFun.ocrTable(formData);
+                break;
+            default:
+                break;
+        }
 
+        if (response.code === 200) {
             setRecognitionResult(response.data);
-            setLoading(false);
-
             if (current === 'ocr' || current === 'table') {
                 const reader = new FileReader();
                 reader.onload = () => setPreviewImage(reader.result);
                 reader.readAsDataURL(file);
             }
-
             setFileList([file]);
-            animateText(response.data.text); // 启动逐字动画
-        } catch (error) {
-            console.error('请求失败:', error);
-            message.error('请求失败，请重试');
-            setLoading(false);
+            if (response.data.text === '') {
+                setAnimatedText('');
+                message.info("识别失败");
+            } else {
+                animateText(response.data.text);
+            }
         }
-        return false; // Prevent default upload behavior
+        setLoading(false);
+        return false;
     };
 
     const animateText = (text) => {
-        let index = 0;
-        const intervalId = setInterval(() => {
-            setAnimatedText(prev => prev + text[index]);
-            index++;
-            if (index === text.length) {
-                clearInterval(intervalId);
-            }
-        }, 100); // Adjust speed of animation here (milliseconds)
+        setAnimatedText(text);
     };
+
     const copyToClipboard = (text) => {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text)
                 .then(() => {
                     message.success('内容已复制到剪切板');
                 })
-                .catch(err => {
+                .catch(() => {
                     message.error('复制失败');
                 });
         } else {
-            // 备用方案：使用传统的 document.execCommand 方法
             const textArea = document.createElement('textarea');
             textArea.value = text;
             document.body.appendChild(textArea);
@@ -122,7 +120,7 @@ const Extraction = ({editor}) => {
             try {
                 document.execCommand('copy');
                 message.success('内容已复制到剪切板');
-            } catch (err) {
+            } catch {
                 message.error('复制失败');
             }
             document.body.removeChild(textArea);
@@ -130,16 +128,12 @@ const Extraction = ({editor}) => {
     };
 
     const handleCopyText = () => {
-        if(current!="table"){
+        if (current !== "table") {
             copyToClipboard(recognitionResult.text);
-
-        }else{
-            console.log(recognitionResult.text)
-            editor.commands.setContent(recognitionResult.text);
+        } else {
+            editor.commands.setContent(editor.getHTML()+`${recognitionResult.text}`);
         }
     };
-
-
 
     const uploadProps = {
         accept: current === 'asr' ? '.wav' : 'image/*',
@@ -172,30 +166,29 @@ const Extraction = ({editor}) => {
                     </Card>
                 )}
             </div>
-
             <div className="tip-correction m-t-20">
                 <strong>提取结果</strong>
             </div>
 
             <div className='flex-c-center-center'>
                 <Card className='m-t-20 shadow' hoverable style={{ width: 300 }}>
-                    <div className='flex' style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                        {loading ? '正在生成中...' : (recognitionResult.message || '暂无结果')}
-                    </div>
+{/*                    <div className='flex' style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
+                        {loading ? '正在生成中...' : (recognitionResult.message === '成功' ? '' : '暂无结果')}
+                    </div>*/}
                     <div className='flex m-b-10' style={{ wordBreak: 'break-all', wordWrap: 'break-word', alignItems: 'center' }}>
                         {loading ? '' : animatedText}
-                        {!loading && recognitionResult.text && <FileAddOutlined onClick={handleCopyText} style={{ marginLeft: 8, cursor: 'pointer' }} />}
+                        {!loading && recognitionResult?.text && <FileAddOutlined onClick={handleCopyText} style={{ marginLeft: 8, cursor: 'pointer' }} />}
                     </div>
                     {recognitionResult.ocrImage && (
                         <div className='flex' style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                            {recognitionResult.ocrImage ? <img alt="OCR Result" style={{ width: '100%' }} src={recognitionResult.ocrImage} onClick={() => setIsModalVisible(true)} /> : ''}
+                            {recognitionResult?.ocrImage ? <img alt="OCR Result" style={{ width: '100%' }} src={recognitionResult?.ocrImage} onClick={() => setIsModalVisible(true)} /> : ''}
                         </div>
                     )}
                 </Card>
             </div>
 
-            <Modal visible={isModalVisible} footer={null} onCancel={() => setIsModalVisible(false)}>
-                <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+            <Modal open={isModalVisible} footer={null} onCancel={() => setIsModalVisible(false)}>
+                <img alt="preview" style={{ width: '100%' }} src={recognitionResult?.ocrImage ?? previewImage} />
             </Modal>
         </div>
     );

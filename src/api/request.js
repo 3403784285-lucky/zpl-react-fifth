@@ -3,26 +3,40 @@ import Request from "./index.js";
 
 const api={
     post(url, params){
-      return Request(url,{   
+      return Request(url,{
         method: "POST",
         data:params,
       })
     },
     put(url, params){
-      return Request(url,{   
+      return Request(url,{
         method: "PUT",
         data:params,
       })
     },
     putParam(url, params,param){
-      return Request(url,{   
+      return Request(url,{
         method: "PUT",
         data:params,
         params:param
       })
     },
+    postParam(url, params,param){
+      return Request(url,{
+        method: "POST",
+        data:params,
+        params:param
+      })
+    },
+    deleteParam(url, params,param){
+      return Request(url,{
+        method: "DELETE",
+        data:params,
+        params:param
+      })
+    },
     getParam(url, params,param){
-      return Request(url,{   
+      return Request(url,{
         method: "GET",
         data:params,
         params:param
@@ -30,13 +44,13 @@ const api={
     },
 
     delete(url, params){
-      return Request(url,{   
+      return Request(url,{
         method: "DELETE",
         data:params,
       })
     },
     upload(url, params){
-      return Request(url,{   
+      return Request(url,{
         method: "POST",
         requestType:'form',
         data:params,

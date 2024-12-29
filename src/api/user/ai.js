@@ -2,7 +2,12 @@
 import api from "../request";
 
 let aiFun = {
-    
+
+};
+
+
+aiFun.getHot= () => {
+    return api.post("/ai/hot");
 };
 
 aiFun.textContinuation= (data) => {
@@ -45,14 +50,31 @@ aiFun.paperOutlineGeneration = (data) => {
 aiFun.paperContentGeneration = (data) => {
     return api.upload(`/ai/paperContentGeneration`,data);
 };
+
+aiFun.visual = (data) => {
+    const { userInput, chartType } = data;
+    return api.postParam('/ai/echarts', null, { userInput, chartType });
+};
+
+
+aiFun.visual2 = (data) => {
+    return api.upload1(`/ai/echarts`,data);
+};
+
+
 aiFun.paperReview = (PaperReviewRequestDTO) => {
     return api.post(`/ai/paperReview`,PaperReviewRequestDTO);
 };
 
-aiFun.aiDocumentAssistant = (data) => {
-    return api.upload(`/ai/aiDocumentAssistant`,data);
+aiFun.deduct = (name) => {
+    return api.postParam(`/ai/deduct`,null,{apiName:name});
 };
 
+
+
+aiFun.aiDocumentAssistant = (data) => {
+    return api.post(`/ai/aiDocumentAssistant`,data);
+};
 
 aiFun.baidu = (data) => {
     return api.upload(`/ai/baidu`,data);

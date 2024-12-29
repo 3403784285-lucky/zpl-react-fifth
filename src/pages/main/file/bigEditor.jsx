@@ -19,7 +19,7 @@ import { decrypt } from "../../../utils/code";
 import { useStorage } from "web-localstorage-plus";
 import userFun from "../../../api/user/user";
 import FontFamily from "@tiptap/extension-font-family";
-import { useMemo } from 'react';
+import { useCallback, useInsertionEffect, useLayoutEffect, useMemo } from 'react';
 import Collaboration from '@tiptap/extension-collaboration';
 import { WebsocketProvider } from 'y-websocket';
 import Image from "@tiptap/extension-image";
@@ -31,102 +31,264 @@ import { useLocation } from "react-router-dom";
 import { FontSize } from "../../../components/utils/edit/fontSizeExtension";
 import FileHandler from '@tiptap-pro/extension-file-handler'
 import EchartsNode from '../../../components/utils/edit/EchartsNode'
-
-const getRandomName = () => {
-  const names = ['廖梓行', '刘洋', '张培灵']
-  return names[Math.floor(Math.random() * names.length)]
-}
+import { color } from "echarts";
+import CharacterCount from "@tiptap/extension-character-count";
+import fileFun from "../../../api/user/file";
+import Export from "@tiptap-pro/extension-export";
+import Import from "@tiptap-pro/extension-import";
+import { retrieveFile } from "../../../utils/code";
+import FindReplace from "../../../components/findReplace";
+import { message } from "antd";
+import { generateHTML } from '@tiptap/react'
 const getRandomColor = () => {
-  const colors = ['#ff5733', '#33ff57', '#3357ff']
+  const colors = [
+    '#958DF1',
+    '#F98181',
+    '#FBBC88',
+    '#FAF594',
+    '#70CFF8',
+    '#94FADB',
+    '#B9F18D',
+    '#C3E2C2',
+    '#EAECCC',
+    '#AFC8AD',
+    '#EEC759',
+    '#9BB8CD',
+    '#FF90BC',
+    '#FFC0D9',
+    '#DC8686',
+    '#7ED7C1',
+    '#F3EEEA',
+    '#89B9AD',
+    '#D0BFFF',
+    '#FFF8C9',
+    '#CBFFA9',
+    '#9BABB8',
+    '#E3F4F4',]
   return colors[Math.floor(Math.random() * colors.length)]
 }
 
 function BigEditor() {
+
   const location = useLocation()
+  const storage = useStorage();
   const scrollContainerRef = useRef();
-  const [user, setUser] = useState({})
-  const [room, setRoom] = useState(0)
-  const websocketRef = useRef(null);
+  const [saveTimeInit, setSaveTimeInit] = useState('')
+  const [connected, setConnected] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [items, setItems] = useState([])
-  const [documentId, setDocumentId] = useState(0)
   const [contentCopy, setContentCopy] = useState(null)
-  // const props = {
-  //   action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
-  //   onChange: handleChange,
-  //   multiple: true,
-  // };
+  let count = 0;
+  const queryParams = useMemo(() => location.search.slice(1)); // 获取查询参数（去掉开头的问号）
+  const documentId = useMemo(() => decrypt(queryParams),[]);
   const ydoc = useMemo(() => new Y.Doc(), []);   // 使用 useMemo 保证只创建一次 provider
-  console.log("连接")
- 
+
+  const provider = useMemo(() => {
+    return new WebsocketProvider(`/ws/${documentId}`, 'tttt', ydoc);
+   // return new WebsocketProvider(`ws://192.168.43.214:8081/ws/${documentId}`, 'tttt', ydoc)
+  }, [documentId, ydoc])
+
+  const handleFind = (text) => {
+    if (!editor || !text) return;
+
+    editor.chain().focus().unsetHighlight().run(); // 清除之前的高亮
+
+    const regex = new RegExp(text, 'gi');
+    const doc = editor.state.doc;
+    let newMatches = [];
+
+    doc.descendants((node, pos) => {
+      if (node.isText) {
+        let match;
+        while ((match = regex.exec(node.text)) !== null) {
+          const from = pos + match.index;
+          const to = from + match[0].length;
+          newMatches.push({ from, to });
+          editor.commands.setTextSelection({ from, to });
+          editor.commands.setHighlight({ color: '#FFFF00' }); // 普通匹配项高亮为黄色
+        }
+      }
+    });
+    setMatches(newMatches);
+    setCurrentMatchIndex(newMatches.length > 0 ? 0 : -1);
+
+    // 如果有匹配项，将第一个匹配项高亮为特殊颜色
+    if (newMatches.length > 0) {
+      editor.commands.setTextSelection(newMatches[0]);
+      editor.commands.setHighlight({ color: '#FF0000' }); // 当前匹配项高亮为红色
+    }
+  };
+
+  const goToNextMatch = () => {
+    if (matches.length === 0) return;
+
+    // 清除当前高亮颜色
+    editor.commands.setTextSelection(matches[currentMatchIndex]);
+    editor.commands.setHighlight({ color: '#FFFF00' }); // 重新设为普通高亮颜色
+
+    const nextIndex = (currentMatchIndex + 1) % matches.length;
+    setCurrentMatchIndex(nextIndex);
+
+    // 设置新的当前匹配项的高亮颜色
+    editor.commands.setTextSelection(matches[nextIndex]);
+    editor.commands.setHighlight({ color: '#FF0000' }); // 当前匹配项高亮为红色
+  };
+
+  const goToPreviousMatch = () => {
+    if (matches.length === 0) return;
+
+    // 清除当前高亮颜色
+    editor.commands.setTextSelection(matches[currentMatchIndex]);
+    editor.commands.setHighlight({ color: '#FFFF00' }); // 重新设为普通高亮颜色
+
+    const prevIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+    setCurrentMatchIndex(prevIndex);
+
+    // 设置新的当前匹配项的高亮颜色
+    editor.commands.setTextSelection(matches[prevIndex]);
+    editor.commands.setHighlight({ color: '#FF0000' }); // 当前匹配项高亮为红色
+  };
+
+  const importSave = async (content) => {
+    const res = await fileFun.update(storage.getItem("documentId"), { content: content, userId: storage.getItem("openid") })
+    if (res.code == 200) {
+      message.success("导入成功")
+    }
+
+  }
   useEffect(() => {
     const fetchData = async () => {
-      const storage = useStorage();
-
-      const queryParams = location.search.slice(1); // 获取查询参数（去掉开头的问号）
-      const documentId = decrypt(queryParams); // 假设你有一个解密函数
+      // 假设你有一个解密函数
       storage.setItem("documentId", documentId)
-      console.log(location.search)
-      console.log('Document ID:', documentId);
       const userId = storage.getItem("openid");
       if (userId) {
         const res = await userFun.shareCollaboration({ userId, documentId });
-        console.log(JSON.stringify(res.data) + "-------------->");
-        setRoom(res.data.document.id);
-        storage.setItem("documentName",res.data.document.name)
-        setUser(res.data.user);
-        setContentCopy(res.data.document.content); // 获取内容
-        console.log("content:", res.data.document.content+"------------------------------")
-        console.log("用户：",res.data.user)
+        //console.log(JSON.stringify(res.data) + "------------==========")
+        setSaveTimeInit(res.data.document.updateTime)
+        let permission = res.data.permission
+        if (permission == 1 || permission == 2) {
+          editor.setEditable(true)
 
+        } else {
+          editor.setEditable(false)
+        }
+        const importFile = storage.getItem("importFile");
+        if (!importFile) {
+          setContentCopy(res.data.document.content); // 获取内容
+          storage.setItem("documentName", res.data.document.name)
+        }
+        else {
+          retrieveFile(storage.getItem("documentName") + '.docx').then((retrievedFile) => {
+            console.log(retrievedFile)
+            editor.chain().import({
+              file: retrievedFile.result,
+              onImport(context) {
+                console.log(context.content)
+                editor.commands.setContent(context.content)
+                setContentCopy(context.content)
+
+                let content = editor.getHTML()
+                importSave(content)
+
+              },
+            }).run()
+
+            storage.setItem("importFile", false)
+
+          }).catch((error) => {
+            console.error('Error retrieving file:', error);
+          });
+
+
+
+        }
       }
     };
     fetchData();
-  }, [location.search])
+  }, [])
+
+
   useEffect(() => {
-    if (room !== 0 && !websocketRef.current) {
-      websocketRef.current = new WebsocketProvider(`ws://192.168.43.214:8081/ws/${room}`, 'tttt', ydoc);
-    }
-  }, [room, ydoc]);
-  const extensions = useMemo(() => {
-    const baseExtensions = [
+    // 当组件卸载时，关闭协同连接
+    return () => {
+      provider.destroy(); // 销毁 WebSocket 连接
+      ydoc.destroy(); // 销毁 Y.Doc 文档
+    };
+  }, [provider, ydoc]);
+
+
+
+  const handleReplaceAll = (findText, replaceText) => {
+    if (!editor || !findText || !replaceText) return;
+
+    editor.commands.setContent(
+      editor.getHTML().replace(new RegExp(findText, 'g'), replaceText)
+    );
+  };
+
+  const editor = useEditor({
+    extensions: [
       TableOfContents.configure({
         getIndex: getHierarchicalIndexes,
         onUpdate(content) {
+          //onsole.log("editor变了")
           setItems(content);
         },
       }),
       Image,
-      FontSize,
       EchartsNode,
-      FontFamily,
+      Export.configure({
+        appId: 'e97ooxlm',
+        token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3MjMxNjczOTUsImV4cCI6MTc1NDcwMzM5NSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.ofXKcQv4r735G6ldmw9TfykWyoiCtw4vfus7XiwpyKA',
+      }),
+      Import.configure({
+        appId: 'e97ooxlm',
+        token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3MjMxNjczOTUsImV4cCI6MTc1NDcwMzM5NSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.ofXKcQv4r735G6ldmw9TfykWyoiCtw4vfus7XiwpyKA',
+      }),
+      CharacterCount,
+      TextStyle.configure({
+        types: ['paragraph', 'heading'], // 确保作用在段落和标题上
+      }),
+      FontFamily.configure({
+        types: ['textStyle'], // 确保与 TextStyle 一起使用
+      }),
+      FontSize.configure({
+        types: ['textStyle'], // 确保与 TextStyle 一起使用
+      }),
       FileHandler.configure({
         allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-        onDrop: (currentEditor, files, pos) => {
+        onDrop: (currentEditor, files, htmlContent) => {
           files.forEach(file => {
-            const fileReader = new FileReader();
-            fileReader.readAsDataURL(file);
-            fileReader.onload = () => {
-              currentEditor.chain().insertContentAt(pos, {
+            const formData = new FormData()
+            console.log(file)
+            formData.append("file", file)
+            fileFun.upload(formData).then(res => {
+              currentEditor.chain().insertContentAt(currentEditor.state.selection.anchor, {
                 type: 'image',
                 attrs: {
-                  src: fileReader.result,
+                  src: res.data,
                 },
               }).focus().run();
-            };
+            });
+
           });
         },
         onPaste: (currentEditor, files, htmlContent) => {
           files.forEach(file => {
-            const fileReader = new FileReader();
-            fileReader.readAsDataURL(file);
-            fileReader.onload = () => {
+            const formData = new FormData()
+            console.log(file)
+            formData.append("file", file)
+            fileFun.upload(formData).then(res => {
               currentEditor.chain().insertContentAt(currentEditor.state.selection.anchor, {
                 type: 'image',
                 attrs: {
-                  src: fileReader.result,
+                  src: res.data,
                 },
               }).focus().run();
-            };
+            });
+
           });
         },
       }),
@@ -134,12 +296,14 @@ function BigEditor() {
         types: [TextStyle.name, ListItem.name],
         keepMarks: true,
       }),
-      TextStyle.configure({ types: [ListItem.name], keepMarks: true }),
+
       Highlight.configure({
         multicolor: true,
       }),
       Markdown,
-      Table,
+      Table.configure({
+        resizable: true,
+      }),
       TableCell,
       TableHeader,
       TableRow,
@@ -154,68 +318,63 @@ function BigEditor() {
       StarterKit.configure({
         bulletList: {
           keepMarks: true,
-          keepAttributes: false,
+          keepAttributes: true,
         },
         orderedList: {
           keepMarks: true,
-          keepAttributes: false,
+          keepAttributes: true,
         },
-        history: {
-          depth: 10,
-        },
+
+        history: false,
         heading: {
           levels: [1, 2, 3],
         },
       }),
-    ];
-
-    if (room !== 0 && websocketRef.current) {
-      baseExtensions.push(
-        Collaboration.configure({
-          document: ydoc,
-        }),
-        CollaborationCursor.configure({
-          provider: websocketRef.current,
-          user: {
-            name: user.nickname,
-            color: '#f783ac',
-          },
-        })
-      );
-    }
-
-    return baseExtensions;
-  }, [room, ydoc, user.nickname]);
-
-
-
-  const editor = useEditor({
-    extensions,
+      Collaboration.configure({
+        document: ydoc, // 确保正确传递 ydoc
+      }),
+      provider && CollaborationCursor.configure({
+        provider: provider, // 确保正确传递 provider
+        user: {
+          name: storage.getItem("user").nickname,
+          color: getRandomColor(),
+        },
+      })
+    ],
     content: contentCopy,
   });
-
   useEffect(() => {
-    if (editor && contentCopy) {
+    //console.log(editor.getHTML())
+    if (editor && contentCopy && count < 1) {
       editor.commands.setContent(contentCopy)
-      console.log("插入了",contentCopy)
+      //console.log(contentCopy)
       editor.commands.insertContent(",")
-
+      count++;
     }
   }, [contentCopy])
 
 
 
-  return <div className="flex h-full shadow-primary">
-    <div className="shadow-primary p-20" style={{ height: '100%', width: '16%', overflowY: 'auto' }} ref={scrollContainerRef}>
-      <h3 className="m-y-10">目录</h3>
-      <div className="p-t-10">
-        <MemorizedToC items={items} scrollContainerRef={scrollContainerRef} />
 
+  return <div className="flex h-full shadow-primary" ref={scrollContainerRef}>
+    <div className="shadow-primary p-20" style={{ height: '100%', width: '16%', overflowY: 'auto' }} >
+      <h3 className="m-y-10">目录</h3>
+      <div className="p-t-10" style={{ fontSize: '14px' }}>
+        <MemorizedToC items={items} editor={editor} scrollContainerRef={scrollContainerRef} />
       </div>
     </div>
-    <div className="" style={{ height: '100%', width: '84%' }}><Tiptap editor={editor} content={contentCopy}  /></div>
-    {/* @tiptap-pro:registry=https://registry.tiptap.dev/
-        >> >> //registry.tiptap.dev/:_authToken=89J50XK */}
+
+    <div className="" style={{ height: '100%', width: '84%' }}>
+      <FindReplace
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onFind={handleFind}
+        onReplace={() => { }}
+        onReplaceAll={() => { }}
+        onNext={goToNextMatch}
+        onPrevious={goToPreviousMatch}
+      />
+      <Tiptap editor={editor} setIsModalVisible={setIsModalVisible} saveTimeInit={saveTimeInit} provider={provider} content={contentCopy} /></div>
   </div>
 }
-export default BigEditor
+export default BigEditor;

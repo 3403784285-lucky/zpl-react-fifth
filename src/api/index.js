@@ -3,11 +3,9 @@ import { message } from 'antd';
 // import store from '../store';//引入sto
 // import { stringify } from "qs";
 import { useStorage } from "web-localstorage-plus";
-
 const errorHandler = (
   err
 ) => {
-
   message.destroy();
   message.error(err.msg || "接口请求失败，请稍后再试...");
   console.log(err)
@@ -15,9 +13,9 @@ const errorHandler = (
     err
   };
 };
-
 const Request = extend({
-  prefix: 'http://u5dueb.natappfree.cc',
+  prefix: 'http://edit.yunfei.plus/api',
+  // prefix: 'http://localhost:8090',
   timeout: 300000,
   errorHandler,
 });
@@ -62,7 +60,13 @@ Request.interceptors.response.use((response) => {
       if (resData.code === 200) {
         resolve(resData);
       } else {
+        if(resData.code === 401){
+          message.info("请重新登录");
+          window.location.hash="/login"
+
+        }else
         reject(resData);
+
       }
     });
   });
