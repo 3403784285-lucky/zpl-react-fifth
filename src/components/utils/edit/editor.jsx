@@ -2,10 +2,12 @@
 import MenuBar from './menuBar.jsx'
 import { SlackOutlined, TranslationOutlined, CaretRightOutlined, BuildOutlined, RadarChartOutlined, ApiFilled, ContainerOutlined, AndroidOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
+
 import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react'
 import classes from "./editor.module.scss";
 import { Modal, Spin, Cascader, Layout, Menu, message } from 'antd'
 import aiFun from '../../../api/user/ai.js'
+import Draggable from 'react-draggable';
 import Draggable from 'react-draggable';
 import { Tooltip, Select, Popover, ColorPicker } from 'antd/lib/index.js'
 import { useStorage } from "web-localstorage-plus";
@@ -25,6 +27,7 @@ import MyExample from '../../../pages/myExample.jsx';
 import AiHelper from '../../../pages/ai/aiHelper.jsx';
 import PassageComment from '../../../pages/ai/PassageComment.jsx';
 import Picture from '../../../pages/ai/picture.jsx';
+import Style from '../../../pages/ai/style.jsx'
 import Style from '../../../pages/ai/style.jsx'
 import { head } from 'lodash';
 import * as echarts from 'echarts';
@@ -100,6 +103,9 @@ const Tiptap = ({ setIsModalVisible,content, editor = {}, provider, saveTimeInit
   const [bulletList, setBulletList] = useState(false);
   const [wait, setWait] = useState(false);
   const [orderedList, setOrderedList] = useState(false);
+  const [bulletList, setBulletList] = useState(false);
+  const [wait, setWait] = useState(false);
+  const [orderedList, setOrderedList] = useState(false);
   const [isFormatBrushActive, setIsFormatBrushActive] = useState(false);
   const [formatToApply, setFormatToApply] = useState(null);
   const [formatToApplyCopy, setFormatToApplyCopy] = useState(null);
@@ -110,10 +116,13 @@ const Tiptap = ({ setIsModalVisible,content, editor = {}, provider, saveTimeInit
   const [openCopy, setOpenCopy] = useState(false);
   const [openThree, setOpenThree] = useState(false);
   const [cursorClick, setCursorClick] = useState(false);
+  const [cursorClick, setCursorClick] = useState(false);
   const [openFour, setOpenFour] = useState(false);
   const [openFive, setOpenFive] = useState(false);
   const [uniqueOpen, setUniqueOpen] = useState(false)
   const [shrink, setShrink] = useState(false)
+  const [saveTime, setSaveTime] = useState(saveTimeInit)
+  let timerUnique = null
   const [saveTime, setSaveTime] = useState(saveTimeInit)
   let timerUnique = null
   const [fontSize, setFontSize] = useState("16")
@@ -121,6 +130,7 @@ const Tiptap = ({ setIsModalVisible,content, editor = {}, provider, saveTimeInit
   const [power, setPower] = useState("person")
   const [fontFamily, setFontFamily] = useState("Inter")
   const [currentSize, setCurrentSize] = useState("")
+  const [timer, setTimer] = useState(null);
   const [timer, setTimer] = useState(null);
   const [fontFamilyH1Value, setFontFamilyH1Value] = useState('Inter');
   const [fontFamilyH2Value, setFontFamilyH2Value] = useState('Inter');
@@ -133,8 +143,16 @@ const Tiptap = ({ setIsModalVisible,content, editor = {}, provider, saveTimeInit
   const [lineHeightH1Value, setLineHeightH1Value] = useState('1.5');
   const [lineHeightH2Value, setLineHeightH2Value] = useState('1.5');
   const [lineHeightIcon, setLineHeightIcon] = useState('1');
+  const [lineHeightIcon, setLineHeightIcon] = useState('1');
   const [lineHeightH3Value, setLineHeightH3Value] = useState('1.5');
   const [lineHeightH4Value, setLineHeightH4Value] = useState('1.5');
+  const [clicked, setClicked] = useState(false);
+  const [spin, setSpin] = useState(false)
+  const [result,setResult]=useState('')
+  const [visual,setVisual]=useState('')
+  const [visualLoading,setVisualLoading]=useState(false)
+  const [modal, contextHolder] = Modal.useModal();
+  const [chartType, setChartType] = useState(null); // 用于存储当前选中的图表类型
   const [clicked, setClicked] = useState(false);
   const [spin, setSpin] = useState(false)
   const [result,setResult]=useState('')
@@ -279,13 +297,17 @@ if (visible) {
     if (res.code == 200) {
       if (isSaving) {
         // message.success("保存成功")
+        // message.success("保存成功")
         isSaving = false;
       } else {
         // message.success("已自动保存")
+        // message.success("已自动保存")
       }
+      setSaveTime(res.data.updateTime)
       setSaveTime(res.data.updateTime)
     }
   };
+
 
   const saveContentCopy = () => {
     isSaving = true;
@@ -297,6 +319,10 @@ if (visible) {
       if (event.ctrlKey && event.key === 's') {
         event.preventDefault(); // 阻止默认的保存操作
         saveContentCopy(); // 执行保存操作
+      }else if(event.ctrlKey && event.key === 'f'){
+        event.preventDefault();
+        setIsModalVisible(true);
+
       }else if(event.ctrlKey && event.key === 'f'){
         event.preventDefault();
         setIsModalVisible(true);
@@ -325,6 +351,7 @@ if (visible) {
     const saveInterval = setInterval(saveContent, 300000); // 每五分钟保存一次
     return () => clearInterval(saveInterval);
   }, [editor]);
+
 
   useEffect(() => {
     if (!editor) return;
@@ -362,6 +389,7 @@ if (visible) {
         const family = marks.find(mark => mark.attrs.fontFamily != null);
         const line = marks.find(mark => mark.attrs.lineHeight != null);
         // console.log(colorMark)
+        // console.log(colorMark)
         if (colorMark) {
           setColorS(colorMark.attrs.color);
         } else {
@@ -393,6 +421,21 @@ if (visible) {
 
         } else {
           setLineHeightIcon('x'); // 默认颜色
+          let l = line.attrs.lineHeight
+          if (l == 2) {
+            setLineHeightIcon('xx'); // 默认颜色
+
+
+          } else if (l == 1.5) {
+            setLineHeightIcon('xox'); // 默认颜色
+
+          } else {
+            setLineHeightIcon('x'); // 默认颜色
+
+          }
+
+        } else {
+          setLineHeightIcon('x'); // 默认颜色
         }
       }
     };
@@ -405,8 +448,17 @@ if (visible) {
   useEffect(() => {
     setSaveTime(saveTimeInit)
   }, [saveTimeInit])
+  }, [editor, content, cursorClick, wait]);
+  //到时候好好学习一下这里
+  useEffect(() => {
+    setSaveTime(saveTimeInit)
+  }, [saveTimeInit])
   const polishClick = async (value) => {
     const selectedText = editor.state.doc.cut(editor.state.selection.from, editor.state.selection.to).textContent;
+    const res=await aiFun.deduct("文本润色")
+    if(res.code==200){
+       // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
+    const generatingModal = Modal.info({
     const res=await aiFun.deduct("文本润色")
     if(res.code==200){
        // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
@@ -447,10 +499,15 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '润色结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -459,6 +516,9 @@ if (visible) {
         cancelText: '弃用',
         onOk() {
           // 替换编辑器中的选中内容为生成的结果
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
@@ -535,6 +595,10 @@ if (visible) {
     if(res.code==200){
        // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
     const generatingModal = Modal.info({
+    const res=await aiFun.deduct("重写")
+    if(res.code==200){
+       // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
+    const generatingModal = Modal.info({
       title: '生成中',
       icon: null, // 可以根据需要设置一个加载中的图标
       content: (
@@ -545,6 +609,8 @@ if (visible) {
       okButtonProps: { disabled: true }, // 禁用模态框的确认按钮，避免用户操作
     });
 
+    const formData = new FormData();
+    formData.append('text', selectedText);
     const formData = new FormData();
     formData.append('text', selectedText);
 
@@ -571,10 +637,15 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '重写结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -586,8 +657,13 @@ if (visible) {
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
         },
         onCancel() {
+          // 用户取消操作
+          setResult('')
           // 用户取消操作
           setResult('')
 
@@ -660,6 +736,10 @@ if (visible) {
     if(res.code==200){
        // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
     const generatingModal = Modal.info({
+    const res=await aiFun.deduct("文本纠错")
+    if(res.code==200){
+       // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
+    const generatingModal = Modal.info({
       title: '生成中',
       icon: null, // 可以根据需要设置一个加载中的图标
       content: (
@@ -696,10 +776,16 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '校正结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -711,8 +797,13 @@ if (visible) {
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
         },
         onCancel() {
+          // 用户取消操作
+          setResult('')
           // 用户取消操作
           setResult('')
 
@@ -905,6 +996,10 @@ if (visible) {
     if(res.code==200){
        // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
     const generatingModal = Modal.info({
+    const res=await aiFun.deduct("扩写")
+    if(res.code==200){
+       // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
+    const generatingModal = Modal.info({
       title: '生成中',
       icon: null, // 可以根据需要设置一个加载中的图标
       content: (
@@ -941,10 +1036,15 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '扩写结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -953,6 +1053,9 @@ if (visible) {
         cancelText: '弃用',
         onOk() {
           // 替换编辑器中的选中内容为生成的结果
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
@@ -1022,8 +1125,14 @@ if (visible) {
   };
 
 
+
+
   const summarizationClick = async () => {
     const selectedText = editor.state.doc.cut(editor.state.selection.from, editor.state.selection.to).textContent;
+    const res=await aiFun.deduct("文本摘要")
+    if(res.code==200){
+       // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
+    const generatingModal = Modal.info({
     const res=await aiFun.deduct("文本摘要")
     if(res.code==200){
        // 显示生成中的模态框，使用CSS动画来模拟生成中的效果
@@ -1063,10 +1172,15 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '总结结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -1078,8 +1192,13 @@ if (visible) {
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
         },
         onCancel() {
+          // 用户取消操作
+          setResult('')
           // 用户取消操作
           setResult('')
 
@@ -1152,6 +1271,7 @@ if (visible) {
       let currentIndex = 0;
       const timerCopy = setInterval(() => {
         // console.log("定时器执行")
+        // console.log("定时器执行")
         if (currentIndex < text.length) {
           const resultTextElement = document.getElementById('result-text');
           resultTextElement.textContent += text[currentIndex]; // 逐字添加到显示元素中
@@ -1166,8 +1286,11 @@ if (visible) {
         }
       }, 30); // 控制文字输出的速度，可以根据需要调整
       timerUnique = timerCopy
+      }, 30); // 控制文字输出的速度，可以根据需要调整
+      timerUnique = timerCopy
     });
   }
+
 
 
   const createChartClick = async () => {
@@ -1217,13 +1340,20 @@ if (visible) {
       setBulletList($from.toString().includes('bulletList'))
       setOrderedList($from.toString().includes('orderedList'))
 
+      setBulletList($from.toString().includes('bulletList'))
+      setOrderedList($from.toString().includes('orderedList'))
+
       if ($from.parent.type.name == 'heading') {
         console.log($from.parent.attrs.level)
         setLevel($from.parent.attrs.level)
       }
 
+
       console.log($from.parent.attrs.textAlign)
       setTextAlign($from.parent.attrs.textAlign);
+      setCurrentFamily($from.parent.attrs.fontFamily ?? 'Inter')
+      setCurrentSize($from.parent.attrs.fontSize ?? 16)
+      setLineCurrentHeight($from.parent.attrs.lineHeight ?? 1)
       setCurrentFamily($from.parent.attrs.fontFamily ?? 'Inter')
       setCurrentSize($from.parent.attrs.fontSize ?? 16)
       setLineCurrentHeight($from.parent.attrs.lineHeight ?? 1)
@@ -1240,6 +1370,31 @@ if (visible) {
     console.log("格式应用")
     if (editor) {
       const { from, to } = editor.state.selection;
+      const { $from } = editor.state.selection;
+      console.log(JSON.stringify(formatToApply))
+      if (formatToApply.length==0) {
+        console.log("空数组");
+        editor.chain().focus().setTextAlign(textAlign).run();
+        editor.chain().focus().setFontFamily(currentFamily).run();
+        editor.chain().focus().setFontSize(currentSize).run();
+        editor.chain().focus().setLineHeight(lineCurrentHeight).run();
+        editor.chain().focus().unsetBold().run()
+        editor.chain().focus().unsetBlockquote().run()
+        editor.chain().focus().unsetCode().run()
+        editor.chain().focus().unsetItalic().run()
+        editor.chain().focus().unsetStrike().run()
+
+        // editor.chain().focus().clearNodes().run();
+
+      } else {
+        formatToApply.forEach(mark => {
+          if (!mark.attrs == {}) {
+            editor.chain().focus().setTextSelection({ from: from, to: to }).toggleMark(mark.type, mark.attrs).run();
+          } else {
+            editor.chain().focus().setTextSelection({ from: from, to: to }).toggleMark(mark.type).run();
+          }
+        });
+      }
       const { $from } = editor.state.selection;
       console.log(JSON.stringify(formatToApply))
       if (formatToApply.length==0) {
@@ -1283,15 +1438,18 @@ if (visible) {
     }
   };
 
+
   const handleOpenChangeFive = (newOpenFive) => {
     setOpenFive(newOpenFive);
   };
+
 
   const hide = (index) => {
     console.log("选择开关")
     console.log(index)
     if (index == 0) {
       editor.chain().focus().toggleNode("heading", "paragraph").run()
+    } else editor.chain().focus().toggleHeading({ level: index }).run()
     } else editor.chain().focus().toggleHeading({ level: index }).run()
     setCurrentIcon(icons[index])
     setOpen(false);
@@ -1302,10 +1460,13 @@ if (visible) {
   };
 
 
+
+
   const selectColorComplete = (colorO) => {
     console.log("选择颜色开关")
     console.log("我现在选择的颜色是" + colorO.metaColor.originalInput)
     setColorS((colorS) => { colorS = colorO.metaColor.originalInput; editor.chain().focus().setColor(colorS).run(); return colorS });
+    // console.log(editor.storage.markdown.getMarkdown())
     // console.log(editor.storage.markdown.getMarkdown())
     storage.setItem("passage", editor.storage.markdown.getMarkdown());
   }
@@ -1395,10 +1556,15 @@ if (visible) {
 
       // 显示结果的模态框
       const resultModal = Modal.confirm({
+      // 显示结果的模态框
+      const resultModal = Modal.confirm({
         title: '翻译结果',
+        icon: <IconFont type='icon-jihebiaoshi21' />,
         icon: <IconFont type='icon-jihebiaoshi21' />,
         content: (
           <div className="result-content">
+            {/* 动态显示逐字生成的文本 */}
+            <p id="result-text">{result}</p>
             {/* 动态显示逐字生成的文本 */}
             <p id="result-text">{result}</p>
           </div>
@@ -1407,6 +1573,9 @@ if (visible) {
         cancelText: '弃用',
         onOk() {
           // 替换编辑器中的选中内容为生成的结果
+          editor.chain().focus().deleteSelection().insertContent(result1).run();
+          setResult('')
+
           editor.chain().focus().deleteSelection().insertContent(result1).run();
           setResult('')
 
@@ -1573,7 +1742,22 @@ if (visible) {
         </div>
       </Draggable>
       )}
+     {visible&& (
+        <Draggable>
+        <div className="floating-panel p-10 position-absolute bg-color-white shadow flex-c-center-center" style={{top:20,zIndex:9999}}>
+          {visualLoading && <Spin />}
+          <div ref={chartRef} style={{ width: '400px', height: 250 }} className="chart-container"></div>
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <Button type="primary" onClick={insertPicture} style={{ marginRight: '10px' }}>
+              选择使用
+            </Button>
+            <Button onClick={() => setVisible(false)}>取消</Button>
+          </div>
+        </div>
+      </Draggable>
+      )}
     <MenuBar
+      provider={provider}
       provider={provider}
       shrink={shrink}
       isFormatBrushActive={isFormatBrushActive}
@@ -1592,6 +1776,7 @@ if (visible) {
       contentPopCopy={contentPopCopy}
       contentPopThree={contentPopThree}
       lineHeightIcon={lineHeightIcon}
+      lineHeightIcon={lineHeightIcon}
       handleOpenChange={handleOpenChange}
       openCopy={openCopy}
       handleOpenChangeCopy={handleOpenChangeCopy}
@@ -1607,6 +1792,7 @@ if (visible) {
     <div className='flex' style={{ height: '84%', }} > {!content ? (
       <Spin size="large" style={{ margin: '290px 500px' }} />
     ) : (<>  <div style={{ width: `${shrink ? 100 : 65}%`, overflowY: 'auto' }}>
+      <EditorContent className={`p-24 ${classes.codeBlock} `} editor={editor} />
       <EditorContent className={`p-24 ${classes.codeBlock} `} editor={editor} />
     </div>
      <div className={`position-relative ${shrink ? 'show-no' : ''}`} style={{ width: '35%', backgroundColor: 'red', boxShadow: 'rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px' }}>
@@ -1624,7 +1810,7 @@ if (visible) {
           </Menu>
 
           <div className="bg-color-white flex-1">
-
+         
             {current == 1 ? (<Extraction editor={editor} />) : (current == 2 ? (<Dictionary />) : (current == 3 ? (<Generation />) : (current == 4 ? (<Polishing editor={editor} fontFamilyH1Value={fontFamilyH1Value}
               handleApplyStyles={handleApplyStyles}
               handleResetStyles={handleResetStyles}
@@ -1684,6 +1870,7 @@ if (visible) {
     </div>
     <div className="footer shadow flex-r-center-center p-x-10" style={{ height: '8%', justifyContent: 'space-between' }}>
       <div className="flex-r-center-center"><Tooltip placement="topLeft" title='文档权限'>
+      <div className="flex-r-center-center"><Tooltip placement="topLeft" title='文档权限'>
         <Select
           value={power}
           style={{
@@ -1706,17 +1893,24 @@ if (visible) {
 
       <div className='flex-r-center-center'>
         <div className='text-color-grey m-r-10 font-size-sm'>已保存：{saveTime}</div>
+        <div className=' text-color-grey font-size-sm m-l-10'>字数：{editor.storage.characterCount.characters()}</div></div>
+
+      <div className='flex-r-center-center'>
+        <div className='text-color-grey m-r-10 font-size-sm'>已保存：{saveTime}</div>
         <Popover
           trigger="click"
           open={openFive}
           content={contentFive}
           onOpenChange={handleOpenChangeFive}
         ><Button className='b-rd-6 m-r-10 ' type="primary" >
+        ><Button className='b-rd-6 m-r-10 ' type="primary" >
             导出
           </Button>
         </Popover>
         <Button onClick={saveContentCopy} className='b-rd-6 bg-color-black text-color-white'>
           保存
+        </Button>
+      </div>
         </Button>
       </div>
     </div>
@@ -1758,6 +1952,9 @@ if (visible) {
             placement='left'
             content={(
               <div>
+                <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("饼图")}> 饼图</div>
+                <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("柱状图")}>柱状图</div>
+                <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("折线图")}>折线图</div>
                 <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("饼图")}> 饼图</div>
                 <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("柱状图")}>柱状图</div>
                 <div className='p-6 hover-effect b-rd-6' onClick={() => pictureClick("折线图")}>折线图</div>
@@ -1809,8 +2006,10 @@ export default Tiptap;
 //     setPdfContent(content);
 
      // 将内容插入到编辑器中
+     // 将内容插入到编辑器中
 //     editor.chain().insertContent(content).run();
 //   };
 //   reader.readAsArrayBuffer(file);
 // };
+
 

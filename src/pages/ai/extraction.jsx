@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { PlusOutlined, AppstoreOutlined, BorderOuterOutlined, AudioOutlined, LoadingOutlined, FileAddOutlined } from '@ant-design/icons';
 import { Menu, Upload, Card, message, Button, Modal } from 'antd';
 import aiFun from '../../api/user/ai';
@@ -34,16 +35,20 @@ const Extraction = ({editor}) => {
     const handleMenuClick = (e) => {
         setCurrent(e.key);
         setFileList([]);  // 清空文件列表
+        setFileList([]);  // 清空文件列表
         setRecognitionResult({ message: '', text: '', ocrImage: '' });
         setPreviewImage('');
         setAnimatedText('');
     };
 
     const handleChange = ({ file, fileList }) => {
+    const handleChange = ({ file, fileList }) => {
         if (file.status === 'removed') {
             setFileList([]);
             setPreviewImage('');
             setRecognitionResult({ message: '', text: '', ocrImage: '' });
+        } else {
+            setFileList(fileList); // 更新文件列表状态
         } else {
             setFileList(fileList); // 更新文件列表状态
         }
@@ -53,9 +58,13 @@ const Extraction = ({editor}) => {
         // 清空文件列表
         setFileList([]);
 
+        // 清空文件列表
+        setFileList([]);
+
         const formData = new FormData();
         formData.append('file', file);
 
+        setAnimatedText('');
         setAnimatedText('');
         setLoading(true);
 
@@ -78,7 +87,27 @@ const Extraction = ({editor}) => {
             default:
                 break;
         }
+        let response;
+        switch (current) {
+            case 'ocr':
+                response = await aiFun.ocr(formData);
+                break;
+            case 'asr':
+                if (file.type !== 'audio/wav') {
+                    message.error('语音识别只支持.wav格式的文件');
+                    setLoading(false);
+                    return false;
+                }
+                response = await aiFun.asr(formData);
+                break;
+            case 'table':
+                response = await aiFun.ocrTable(formData);
+                break;
+            default:
+                break;
+        }
 
+        if (response.code === 200) {
         if (response.code === 200) {
             setRecognitionResult(response.data);
             if (current === 'ocr' || current === 'table') {
@@ -96,9 +125,21 @@ const Extraction = ({editor}) => {
         }
         setLoading(false);
         return false;
+            if (response.data.text === '') {
+                setAnimatedText('');
+                message.info("识别失败");
+            } else {
+                animateText(response.data.text);
+            }
+        }
+        setLoading(false);
+        return false;
     };
 
     const animateText = (text) => {
+        setAnimatedText(text);
+    };
+
         setAnimatedText(text);
     };
 
@@ -108,6 +149,7 @@ const Extraction = ({editor}) => {
                 .then(() => {
                     message.success('内容已复制到剪切板');
                 })
+                .catch(() => {
                 .catch(() => {
                     message.error('复制失败');
                 });
@@ -121,6 +163,7 @@ const Extraction = ({editor}) => {
                 document.execCommand('copy');
                 message.success('内容已复制到剪切板');
             } catch {
+            } catch {
                 message.error('复制失败');
             }
             document.body.removeChild(textArea);
@@ -129,7 +172,10 @@ const Extraction = ({editor}) => {
 
     const handleCopyText = () => {
         if (current !== "table") {
+        if (current !== "table") {
             copyToClipboard(recognitionResult.text);
+        } else {
+            editor.commands.setContent(editor.getHTML()+`${recognitionResult.text}`);
         } else {
             editor.commands.setContent(editor.getHTML()+`${recognitionResult.text}`);
         }
@@ -178,15 +224,19 @@ const Extraction = ({editor}) => {
                     <div className='flex m-b-10' style={{ wordBreak: 'break-all', wordWrap: 'break-word', alignItems: 'center' }}>
                         {loading ? '' : animatedText}
                         {!loading && recognitionResult?.text && <FileAddOutlined onClick={handleCopyText} style={{ marginLeft: 8, cursor: 'pointer' }} />}
+                        {!loading && recognitionResult?.text && <FileAddOutlined onClick={handleCopyText} style={{ marginLeft: 8, cursor: 'pointer' }} />}
                     </div>
                     {recognitionResult.ocrImage && (
                         <div className='flex' style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
+                            {recognitionResult?.ocrImage ? <img alt="OCR Result" style={{ width: '100%' }} src={recognitionResult?.ocrImage} onClick={() => setIsModalVisible(true)} /> : ''}
                             {recognitionResult?.ocrImage ? <img alt="OCR Result" style={{ width: '100%' }} src={recognitionResult?.ocrImage} onClick={() => setIsModalVisible(true)} /> : ''}
                         </div>
                     )}
                 </Card>
             </div>
 
+            <Modal open={isModalVisible} footer={null} onCancel={() => setIsModalVisible(false)}>
+                <img alt="preview" style={{ width: '100%' }} src={recognitionResult?.ocrImage ?? previewImage} />
             <Modal open={isModalVisible} footer={null} onCancel={() => setIsModalVisible(false)}>
                 <img alt="preview" style={{ width: '100%' }} src={recognitionResult?.ocrImage ?? previewImage} />
             </Modal>

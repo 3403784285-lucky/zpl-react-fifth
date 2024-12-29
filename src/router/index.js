@@ -1,6 +1,9 @@
 import {
   createHashRouter
 } from "react-router-dom";
+import {
+  createHashRouter
+} from "react-router-dom";
 import Login from "../pages/loRePage/login";
 import Register from "../pages/loRePage/register";
 import Index from "../pages/frameLayout/index";
@@ -17,6 +20,7 @@ import Bin from "../pages/main/file/bin.jsx";
 import Center from "../pages/main/center/center";
 import Library from "../pages/main/file/library.jsx";
 import Edit from "../pages/main/file/edit.jsx";
+import Key from "../pages/ai/key";
 import Key from "../pages/ai/key";
 import FileLay from "../pages/main/file/fileLay.jsx";
 import ItsCenter from "../pages/template/itsCenter.jsx";
@@ -49,6 +53,10 @@ const router = createHashRouter([{
         path: "/login",
         Component: Login,
       },
+      {
+        path: "/login",
+        Component: Login,
+      },
 
       {
         path: "/register",
@@ -60,7 +68,20 @@ const router = createHashRouter([{
         children: [{
           path: "information-extraction",
           Component: Extraction,
+      {
+        path: "/register",
+        Component: Register,
+      },
+      {
+        path: "big-editor",
+        Component: BigEditor,
+        children: [{
+          path: "information-extraction",
+          Component: Extraction,
 
+        }, ]
+
+      },
         }, ]
 
       },
@@ -112,6 +133,7 @@ const router = createHashRouter([{
 
 
           {
+          {
 
 
             Component: Files,
@@ -121,8 +143,26 @@ const router = createHashRouter([{
                 Component: FileLay,
               },
 
+            Component: Files,
+            children: [{
+
+                path: "",
+                Component: FileLay,
+              },
+
+
 
               {
+                path: "edit",
+                Component: Edit,
+                children: [{
+
+                    path: "",
+                    Component: Correction,
+                  },
+                  {
+                    path: "text-completion",
+                    Component: Completion,
                 path: "edit",
                 Component: Edit,
                 children: [{
@@ -138,7 +178,15 @@ const router = createHashRouter([{
                   {
                     path: "chapter-generation",
                     Component: Generation,
+                  },
+                  {
+                    path: "chapter-generation",
+                    Component: Generation,
 
+                  },
+                  {
+                    path: "text-polishing",
+                    Component: Polishing,
                   },
                   {
                     path: "text-polishing",
@@ -148,7 +196,15 @@ const router = createHashRouter([{
                   {
                     path: "information-extraction",
                     Component: Extraction,
+                  },
+                  {
+                    path: "information-extraction",
+                    Component: Extraction,
 
+                  },
+                  {
+                    path: "super-dictionary",
+                    Component: Dictionary,
                   },
                   {
                     path: "super-dictionary",
@@ -158,6 +214,15 @@ const router = createHashRouter([{
                   {
                     path: "shortcut-key",
                     Component: Key,
+                  },
+                  {
+                    path: "shortcut-key",
+                    Component: Key,
+
+                  }
+
+                ]
+              },
 
                   }
 
@@ -242,6 +307,38 @@ const router = createHashRouter([{
             path: "member-center",
             Component: Center,
           },
+              },
+
+            ]
+          },
+          {
+            path: "my-file",
+            Component: File,
+
+          },
+
+          {
+            path: "search-file",
+            Component: SearchFile,
+
+          },
+          {
+            path: "recycle-bin",
+            Component: Bin,
+          },
+          {
+            path: "library",
+            Component: Library,
+          },
+          {
+            path: "member-center",
+            Component: Center,
+          },
+
+        ]
+      },
+    ]
+  },
 
         ]
       },

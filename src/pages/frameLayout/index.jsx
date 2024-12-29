@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AppstoreFilled, BookOutlined, HomeOutlined,CaretUpOutlined,RadiusSettingOutlined , SnippetsOutlined,ArrowDownOutlined, CreditCardOutlined, BellOutlined, SketchOutlined, UsergroupAddOutlined, EnvironmentFilled, SlackOutlined, ExceptionOutlined, TranslationOutlined, BuildOutlined, FolderAddOutlined, ApiFilled, ContainerOutlined, QuestionCircleFilled, CodeSandboxOutlined, CoffeeOutlined, FireOutlined, ArrowLeftOutlined, AndroidOutlined } from '@ant-design/icons';
 import { Layout, Menu, theme, Input, Popover, message } from 'antd';
+import { AppstoreFilled, BookOutlined, HomeOutlined,CaretUpOutlined,RadiusSettingOutlined , SnippetsOutlined,ArrowDownOutlined, CreditCardOutlined, BellOutlined, SketchOutlined, UsergroupAddOutlined, EnvironmentFilled, SlackOutlined, ExceptionOutlined, TranslationOutlined, BuildOutlined, FolderAddOutlined, ApiFilled, ContainerOutlined, QuestionCircleFilled, CodeSandboxOutlined, CoffeeOutlined, FireOutlined, ArrowLeftOutlined, AndroidOutlined } from '@ant-design/icons';
+import { Layout, Menu, theme, Input, Popover, message } from 'antd';
 import { useNavigate, Outlet } from 'react-router-dom';
 import userFun from '../../api/user/user';
 import { setSearchText } from '../../store';
@@ -12,6 +14,7 @@ import {
 import { createFromIconfontCN } from '@ant-design/icons';
 import { useStorage } from 'web-localstorage-plus';
 import DocumentSearchPage from '../documentSearchPage';
+import FloatingButton from '../../components/base/FloatingButton';
 import FloatingButton from '../../components/base/FloatingButton';
 const IconFont = createFromIconfontCN({
   scriptUrl: [
@@ -38,6 +41,9 @@ getItem('homepage-recommendation', <AppstoreFilled />, '广场'),
 getItem('member-center', < FireOutlined />, '会员中心'),
 getItem('my-folders', <FolderAddOutlined />, '模板中心'),
 getItem('search-document', <SketchOutlined />, '文献中心'),
+]
+const itemOnesCopy = [
+  getItem('statistics', <EnvironmentFilled />, '数据统计'),
 ]
 const itemOnesCopy = [
   getItem('statistics', <EnvironmentFilled />, '数据统计'),
@@ -72,6 +78,7 @@ const Index = () => {
   const [collapsed, setCollapsed] = useState(false);
   const storage = useStorage()
   const [status, setStatus] = useState('')
+  const [status, setStatus] = useState('')
   const [floatLeft, setFloatLeft] = useState(175);
   const [current, setCurrent] = useState('');
   let img = useSelector(state => state.items.value)
@@ -97,8 +104,33 @@ const Index = () => {
     let state = storage.getItem("user")?.userRole
     if (state) setStatus(state)
   }, [storage.getItem("user")?.userRole])
+  console.log(status)
+  const items = [
+    {
+      type: 'group',
+      label: '概览',
+      children: status == "admin" ? itemOnesCopy : itemOnes,
+    },
+    {
+      type: 'group',
+      label: '我的',
+      children: status == "admin" ?  itemTwosCopy:itemTwos ,
+    },
+  ]
+  useEffect(() => {
+    let state = storage.getItem("user")?.userRole
+    if (state) setStatus(state)
+  }, [storage.getItem("user")?.userRole])
   const toSmall = (text) => {
     dispatch(setSearchText(text)); // 调用action设置搜索内容
+  }
+  const logout = async () => {
+    const res = await userFun.logout()
+    if (res.code == 200) {
+      message.success("退出成功")
+      storage.clear()
+      navigate('/login')
+    }
   }
   const logout = async () => {
     const res = await userFun.logout()

@@ -1,4 +1,3 @@
-
 import api from "../request";
 
 let aiFun = {
@@ -79,6 +78,7 @@ aiFun.aiDocumentAssistant = (data) => {
 aiFun.baidu = (data) => {
     return api.upload(`/ai/baidu`,data);
 };
+
 aiFun.translate = (data) => {
     return api.upload(`/ai/translate`,data);
 };
@@ -86,15 +86,23 @@ aiFun.translate = (data) => {
 aiFun.ocr = (data) => {
     return api.upload(`/ai/ocr`,data);
 };
+
 aiFun.asr = (data) => {
     return api.upload(`/ai/asr`,data);
 };
+
 aiFun.ocrTable = (data) => {
     return api.upload(`/ai/ocrTable`,data);
 };
+
 aiFun.fixFormat = (data) => {
     return api.post(`/ai/fixFormat`,data);
 };
 
+aiFun.streamChat = (data) => {
+    // 创建 EventSource 实例连接 SSE 接口
+    const eventSource = api.post(`/ai/sse`,data)
+    return eventSource;
+};
 
 export default aiFun;

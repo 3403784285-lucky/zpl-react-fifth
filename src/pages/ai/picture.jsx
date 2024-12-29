@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Spin, Card, message, Tooltip, Modal } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Spin, Card, message, Tooltip, Modal } from 'antd';
 import aiFun from '../../api/user/ai';
 import { Transformer } from 'markmap-lib';
 import markdown from 'simple-mind-map/src/parse/markdown.js';
 const { Markmap, loadCSS, loadJS } = markmap;
+import MindMap from "simple-mind-map";
 import MindMap from "simple-mind-map";
 import * as markmap from 'markmap-view';
 import Export from 'simple-mind-map/src/plugins/Export.js';
@@ -328,5 +331,4 @@ const Picture = ({ editor }) => {
         </div>
     );
 };
-
 export default Picture;
